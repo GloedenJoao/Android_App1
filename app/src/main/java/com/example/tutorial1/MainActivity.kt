@@ -634,11 +634,10 @@ class FinanceViewModel(application: Application) : AndroidViewModel(application)
     }
 
     companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: ViewModelProvider.Factory.CreationExtras): T {
-                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+        fun provideFactory(app: Application): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return FinanceViewModel(application as Application) as T
+                return FinanceViewModel(app) as T
             }
         }
     }
@@ -649,7 +648,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                val viewModel: FinanceViewModel = viewModel(factory = FinanceViewModel.Factory)
+                val viewModel: FinanceViewModel = viewModel(factory = FinanceViewModel.provideFactory(application))
                 FinanceApp(viewModel)
             }
         }
@@ -734,7 +733,9 @@ fun CaixinhaForm(viewModel: FinanceViewModel) {
             Text("Caixinhas de CDB", style = MaterialTheme.typography.titleMedium)
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nome") })
             OutlinedTextField(value = balance, onValueChange = { balance = it }, label = { Text("Saldo") })
-            Button(onClick = { if (name.isNotBlank()) viewModel.updateCaixinha(name, balance.toDoubleOrNull() ?: 0.0) }) { Text("Adicionar/Atualizar") }
+            Button(onClick = { if (name.isNotBlank()) viewModel.updateCaixinha(name, balance.toDoubleOrNull() ?: 0.0) }) {
+                Text("Adicionar/Atualizar")
+            }
             Text("Caixinhas existentes:")
             viewModel.accounts.filter { it.type == "caixinha" }.forEach { account ->
                 Text("- ${account.name}: R$ %.2f".format(account.balance))
@@ -753,8 +754,10 @@ fun CreditCardForm(viewModel: FinanceViewModel) {
             Text("Cartão de crédito", style = MaterialTheme.typography.titleMedium)
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nome") })
             OutlinedTextField(value = dueDay, onValueChange = { dueDay = it }, label = { Text("Dia de vencimento") })
-            OutlinedTextField(value = openAmount, onValueChange = { openAmount = it }, label = { Text("Valor da fatura (negativo)" })
-            Button(onClick = { viewModel.updateCreditCard(name, dueDay.toIntOrNull() ?: 1, openAmount.toDoubleOrNull() ?: 0.0) }) { Text("Salvar") }
+            OutlinedTextField(value = openAmount, onValueChange = { openAmount = it }, label = { Text("Valor da fatura (negativo)") })
+            Button(onClick = { viewModel.updateCreditCard(name, dueDay.toIntOrNull() ?: 1, openAmount.toDoubleOrNull() ?: 0.0) }) {
+                Text("Salvar")
+            }
         }
     }
 }
